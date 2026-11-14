@@ -1,18 +1,24 @@
 # Enterprise-Grade-End-to-End-Agentic-AI-Solution
 
-This project explores an end-to-end Agentic AI solution on Databricks, with a data engineering workflow for preparing product documents and structured customer data for retrieval. The notebooks demonstrate PDF text extraction, PySpark transformations, Delta tables in Unity Catalog, SQL table functions, direct model interaction, and querying Databricks Vector Search.
+I built this Databricks-based Agentic AI project to prepare mixed-format business data for retrieval. It includes 509 product PDFs and CSV datasets for product metadata, policies, and customer-service records. The notebooks extract PDF text, join it with product metadata in a Delta table, and use hybrid Vector Search to retrieve up to three relevance-ranked matches. Separate Unity Catalog SQL functions look up policies and customer-service records.
 
-The repository name describes the intended scope, not a production-readiness claim. This is a learning project: the diagrams show a broader target architecture, while the repository implements selected data and retrieval components. It does not include a complete agent, deployment, or chat application.
+The architecture uses Databricks, PySpark, Delta Lake, Unity Catalog, and Vector Search to bring structured and unstructured data into a retrieval workflow. The diagrams show the end-to-end design; the notebook guide below describes the included implementation.
 
-## What is implemented
+## Architecture
 
-- Includes 509 product-document PDFs and three CSV files: product metadata, policies, and customer-service records.
-- Extracts PDF text into a Unity Catalog table, then combines that unstructured text with structured product metadata using a PySpark inner join. The resulting `product_docs_combined` Delta table contains product fields, document text, and an `indexed_doc` field formatted for retrieval.
-- Queries an already-created Databricks Vector Search index over `indexed_doc` with hybrid search, requesting up to three matches. Vector Search returns matches ranked by relevance; this notebook does not create or populate the index.
-- Defines Unity Catalog SQL functions to look up policy details and group customer-service records by issue category. These structured-data functions are separate from the product-document table.
-- Demonstrates direct interaction with a Databricks-hosted language model.
+The diagrams show the solution architecture, from source data and retrieval through the agent and delivery layers.
 
-The code does not benchmark throughput, scalability, reliability, or cost. Those properties depend on workspace configuration and have not been established by this project.
+![High-level Databricks architecture](Enterprise%20Agentic%20AI%20Architecture%20on%20Databricks.png)
+
+![End-to-end agentic AI architecture](End-to-End_Agentic_AI_Architecture.png)
+
+## Solution workflow
+
+1. **Source data:** 509 PDF product documents and three CSV files for products, policies, and customer-service records.
+2. **Document processing:** Extracts PDF text and stores it in the Unity Catalog table `product_docs`.
+3. **Data integration:** Joins extracted text with structured product metadata by `product_name`. The `product_docs_combined` Delta table contains product attributes, document text, and a formatted `indexed_doc` field.
+4. **Retrieval:** Queries `indexed_doc` with hybrid Databricks Vector Search and requests up to three relevance-ranked matches.
+5. **Structured lookups and model access:** Defines SQL functions for policy and customer-service queries and demonstrates a direct call to a Databricks-hosted language model.
 
 ## Repository layout
 
@@ -48,7 +54,7 @@ Run notebooks in Databricks; they depend on Databricks runtime features such as 
 | `01_LLM_Interaction.py` | Sends a prompt to `databricks-gpt-oss-120b` through a workspace-specific Databricks AI Gateway URL. |
 | `02_Parse_PDF_Docs.py` | Reads PDFs from a Unity Catalog Volume, extracts text with PyPDF2, and overwrites `agentic_catalog.agentic_schema.product_docs`. |
 | `03_Enrich_PDF_Files.py` | Inner-joins structured product metadata with extracted PDF text on `product_name`, creates the combined `indexed_doc` field, and overwrites `agentic_catalog.agentic_schema.product_docs_combined`. |
-| `04_Query_VS_Index.py` | Runs a hybrid query against the existing `agentic_catalog.agentic_schema.product_docs_index` index on endpoint `vs_endpoint_1`, requesting up to three relevance-ranked matches. It does not create or populate the endpoint or index. |
+| `04_Query_VS_Index.py` | Runs a hybrid query against `agentic_catalog.agentic_schema.product_docs_index` on endpoint `vs_endpoint_1`, requesting up to three relevance-ranked matches. Configure and populate the endpoint and index before running this notebook. |
 | `05_Create_User_Defined_Functions.py` | Creates `get_return_policy` and `get_service_history` in `agentic_catalog.agentic_schema`. |
 
 ## Run the data workflow
@@ -63,20 +69,12 @@ Run notebooks in Databricks; they depend on Databricks runtime features such as 
 
 Notebook 1 requires `DATABRICKS_AI_GATEWAY_URL` to be set to your AI Gateway base URL (including `/mlflow/v1`) and obtains a token from the Databricks notebook context. Each notebook also requires suitable workspace permissions, compute, and any libraries it installs.
 
-## Known limitations
+## Configuration notes
 
-- The notebooks do not create an agent, an embedding pipeline, a Vector Search endpoint or index, a custom agent serving endpoint, a user interface, or tracing. Notebook 1 calls a pre-existing Databricks-hosted model.
-- `get_service_history` groups every matching customer record by issue category. Despite its output column name, `returns_last_12_months`, it does not filter records to the last 12 months.
-- The service data CSV includes names, email addresses, phone numbers, and street addresses. Its provenance is not documented; verify the data source and remove or replace personal information before public sharing or production use.
-- The notebooks contain workspace-specific names and settings. Review and adapt them before running.
-
-## Architecture diagrams
-
-These diagrams illustrate the broader design, not a claim that every shown component is implemented in this repository.
-
-![End-to-end agentic AI architecture](End-to-End_Agentic_AI_Architecture.png)
-
-![High-level Databricks architecture](Enterprise%20Agentic%20AI%20Architecture%20on%20Databricks.png)
+- Create and populate the Vector Search endpoint and index before running notebook 4. Notebook 1 also requires a workspace AI Gateway URL and Databricks authentication; all notebooks need the appropriate workspace resources, permissions, and libraries.
+- `get_service_history` groups matching records by issue category. Its `returns_last_12_months` output name does not correspond to a 12-month date filter in the current SQL function.
+- `cust_service_data.csv` contains names, email addresses, phone numbers, and street addresses. Confirm its provenance and protect or anonymize personal information before reuse.
+- Update catalog, schema, volume, endpoint, and workspace-specific settings to match your Databricks environment.
 
 ## Acknowledgement
 
@@ -85,7 +83,7 @@ This learning project was inspired by [Agentic AI for Beginners: Build an E2E Ag
 ## Author
 
 **Subhajit Chowdhury**  
-Data Engineer | AWS Certified | Snowflake
+Data Engineer | AWS Certified | Data \& AI
 
 - [GitHub](https://github.com/Subhajit-Chowdhury)
 - [LinkedIn](https://www.linkedin.com/in/subhajit-dataengineer/)
