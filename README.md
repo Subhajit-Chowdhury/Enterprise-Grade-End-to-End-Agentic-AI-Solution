@@ -1,200 +1,91 @@
-# Enterprise-Grade End-to-End Agentic AI Solution with RAG Architecture
+# Enterprise-Grade-End-to-End-Agentic-AI-Solution
 
-An end-to-end Agentic AI application built on **Databricks**, combining unstructured PDF documents and structured CSV datasets to support context-aware information retrieval and question answering.
+This project explores an end-to-end Agentic AI solution on Databricks, with a data engineering workflow for preparing product documents and structured customer data for retrieval. The notebooks demonstrate PDF text extraction, PySpark transformations, Delta tables in Unity Catalog, SQL table functions, direct model interaction, and querying Databricks Vector Search.
 
-The solution explores how an AI agent can use different data retrieval tools, including ranked Vector Search and structured data functions, to answer user queries using relevant information from multiple sources.
+The repository name describes the intended scope, not a production-readiness claim. This is a learning project: the diagrams show a broader target architecture, while the repository implements selected data and retrieval components. It does not include a complete agent, deployment, or chat application.
 
-## Project Overview
+## What is implemented
 
-Enterprise information is rarely stored in a single format. Important knowledge can be distributed across technical documentation, product manuals, policies, and structured datasets.
+- Includes 509 product-document PDFs and three CSV files: product metadata, policies, and customer-service records.
+- Extracts PDF text into a Unity Catalog table, then combines that unstructured text with structured product metadata using a PySpark inner join. The resulting `product_docs_combined` Delta table contains product fields, document text, and an `indexed_doc` field formatted for retrieval.
+- Queries an already-created Databricks Vector Search index over `indexed_doc` with hybrid search, requesting up to three matches. Vector Search returns matches ranked by relevance; this notebook does not create or populate the index.
+- Defines Unity Catalog SQL functions to look up policy details and group customer-service records by issue category. These structured-data functions are separate from the product-document table.
+- Demonstrates direct interaction with a Databricks-hosted language model.
 
-This project brings these sources together in a unified Agentic RAG architecture.
+The code does not benchmark throughput, scalability, reliability, or cost. Those properties depend on workspace configuration and have not been established by this project.
 
-The solution works with:
-- **500+ PDF documents:** Unstructured product documentation and knowledge sources.
-- **CSV datasets:** Structured information used for data lookup and analytical queries.
-- **Databricks Vector Search:** Retrieves relevant document content using vector similarity and ranking.
-- **Unity Catalog:** Provides governed access to structured data and callable functions.
-- **Agentic AI:** Uses available tools to retrieve information based on the user's query.
-
-## Key Engineering Components
-
-- **Multi-source data ingestion:** Processing PDF documents and structured CSV files.
-- **Document processing:** Extracting and preparing PDF content for downstream retrieval.
-- **Delta Lake:** Storing structured and processed datasets.
-- **Metadata enrichment:** Combining document content with relevant structured information.
-- **Vector Search:** Creating searchable indexes and retrieving relevant document passages.
-- **Ranked retrieval:** Ordering retrieved results based on relevance.
-- **Agent tool integration:** Making document retrieval and structured data functions available to the AI agent.
-- **Model deployment:** Using Databricks Model Serving.
-- **Observability:** Using MLflow Tracing to inspect agent execution and tool interactions.
-- **Application interface:** Providing a conversational interface through Databricks Apps.
-
-## Architecture Overview
-
-The overall workflow follows this sequence:
-
-1. **Data Sources**
-   - PDF documents (500+ files)
-   - Structured CSV datasets
-
-2. **Data Ingestion and Processing**
-   - Extract document content.
-   - Process structured datasets.
-   - Prepare the data for storage and retrieval.
-
-3. **Data Storage**
-   - Store processed datasets in Delta Lake.
-   - Organize document content and structured information.
-
-4. **Knowledge Retrieval**
-   - Generate embeddings for document content.
-   - Create and synchronize Vector Search indexes.
-   - Retrieve relevant document passages using ranked search results.
-   - Access structured information through Unity Catalog functions.
-
-5. **Agent Orchestration**
-   - Receive natural-language queries.
-   - Select and invoke relevant tools.
-   - Combine retrieved information to formulate a response.
-
-6. **Deployment and Monitoring**
-   - Register and deploy the agent through Databricks Model Serving.
-   - Track execution using MLflow Tracing.
-   - Provide access through a Databricks application.
-
-## Technology Stack
-
-| Area | Technology |
-|---|---|
-| Cloud Data Platform | Databricks |
-| Programming | Python, PySpark, SQL |
-| Data Processing | Apache Spark |
-| Storage | Delta Lake |
-| Data Governance | Unity Catalog |
-| Document Retrieval | Databricks Vector Search |
-| AI Architecture | Agentic AI, RAG |
-| Model Deployment | Databricks Model Serving |
-| Observability | MLflow Tracing |
-| Application | Databricks Apps |
-
-## Repository Structure
+## Repository layout
 
 ```text
-enterprise-grade-agentic-ai-rag/
-│
-├── notebooks/
-│   ├── 01_model_exploration.py
-│   ├── 02_pdf_data_ingestion.py
-│   ├── 03_structured_data_processing.py
-│   ├── 04_document_enrichment.py
-│   ├── 05_vector_search_indexing.py
-│   ├── 06_agent_tools_and_functions.py
-│   └── 07_agent_deployment.py
-│
-├── sample_data/
-│   ├── README.md
-│   └── sample.csv
-│
-├── images/
-│   ├── architecture.png
-│   ├── application.png
-│   └── mlflow_traces.png
-│
-├── .gitignore
-├── requirements.txt
+.
+├── 01_Data_Files/
+│   ├── cust_service_data.csv
+│   ├── policies.csv
+│   ├── products.csv
+│   └── product_docs/                  # 509 PDFs
+├── 02_Notebooks/
+│   ├── 01_LLM_Interaction.py
+│   ├── 02_Parse_PDF_Docs.py
+│   ├── 03_Enrich_PDF_Files.py
+│   ├── 04_Query_VS_Index.py
+│   └── 05_Create_User_Defined_Functions.py
+├── End-to-End_Agentic_AI_Architecture.png
+├── Enterprise Agentic AI Architecture on Databricks.png
+├── .kilo/
+│   ├── .gitignore
+│   └── agents/
+│       └── data.md
 ├── LICENSE
 └── README.md
 ```
 
-*Note: The notebook names above are a suggested organization. Replace them with your actual exported notebook names and omit files that you have not implemented.*
+## Notebook guide
 
-## Implementation Workflow
+Run notebooks in Databricks; they depend on Databricks runtime features such as `spark`, `dbutils`, Unity Catalog, and Vector Search.
 
-### 1. Foundation Model Exploration
+| Notebook | Implementation |
+|---|---|
+| `01_LLM_Interaction.py` | Sends a prompt to `databricks-gpt-oss-120b` through a workspace-specific Databricks AI Gateway URL. |
+| `02_Parse_PDF_Docs.py` | Reads PDFs from a Unity Catalog Volume, extracts text with PyPDF2, and overwrites `agentic_catalog.agentic_schema.product_docs`. |
+| `03_Enrich_PDF_Files.py` | Inner-joins structured product metadata with extracted PDF text on `product_name`, creates the combined `indexed_doc` field, and overwrites `agentic_catalog.agentic_schema.product_docs_combined`. |
+| `04_Query_VS_Index.py` | Runs a hybrid query against the existing `agentic_catalog.agentic_schema.product_docs_index` index on endpoint `vs_endpoint_1`, requesting up to three relevance-ranked matches. It does not create or populate the endpoint or index. |
+| `05_Create_User_Defined_Functions.py` | Creates `get_return_policy` and `get_service_history` in `agentic_catalog.agentic_schema`. |
 
-Explore available foundation models on Databricks and understand how to interact with them through supported interfaces.
+## Run the data workflow
 
-### 2. PDF Document Ingestion
+1. Import the notebooks into a Databricks workspace.
+2. Create catalog `agentic_catalog`, schema `agentic_schema`, and a Unity Catalog Volume named `customer_service`.
+3. Upload `01_Data_Files/product_docs/` to the Volume path `/Volumes/agentic_catalog/agentic_schema/customer_service/Data Files/product_docs/`. If you use another path, update `source_path` in notebook 2.
+4. Load the CSV files into Unity Catalog tables using their existing headers and these names: `products`, `policies`, and `cust_service_data`. There is no CSV ingestion notebook in this repository.
+5. Run notebook 2 to create `product_docs`, then notebook 3 to join its extracted text with the `products` table and create `product_docs_combined`. The inner join keeps only product names present in both tables; both writes use overwrite mode.
+6. To run notebook 4, create and populate a Vector Search endpoint and an index named `agentic_catalog.agentic_schema.product_docs_index` using `product_docs_combined` as the source table and `indexed_doc` as the searchable text. The index must expose `indexed_doc` and `product_id`, which the query requests. The notebook submits a hybrid query and asks for three ranked results. Set `WORKSPACE_URL`, `SP_CLIENT_ID`, and `SP_CLIENT_SECRET` for service-principal authentication.
+7. Run notebook 5 after loading the two source tables it references.
 
-Process the PDF knowledge base and extract relevant text content for downstream transformation and retrieval.
+Notebook 1 requires `DATABRICKS_AI_GATEWAY_URL` to be set to your AI Gateway base URL (including `/mlflow/v1`) and obtains a token from the Databricks notebook context. Each notebook also requires suitable workspace permissions, compute, and any libraries it installs.
 
-### 3. Structured Data Processing
+## Known limitations
 
-Load CSV datasets and prepare structured records for querying through the Databricks environment.
+- The notebooks do not create an agent, an embedding pipeline, a Vector Search endpoint or index, a custom agent serving endpoint, a user interface, or tracing. Notebook 1 calls a pre-existing Databricks-hosted model.
+- `get_service_history` groups every matching customer record by issue category. Despite its output column name, `returns_last_12_months`, it does not filter records to the last 12 months.
+- The service data CSV includes names, email addresses, phone numbers, and street addresses. Its provenance is not documented; verify the data source and remove or replace personal information before public sharing or production use.
+- The notebooks contain workspace-specific names and settings. Review and adapt them before running.
 
-### 4. Metadata Enrichment
+## Architecture diagrams
 
-Connect relevant document content with structured metadata to preserve context and improve retrieval relevance.
+These diagrams illustrate the broader design, not a claim that every shown component is implemented in this repository.
 
-### 5. Vector Search and Ranking
+![End-to-end agentic AI architecture](End-to-End_Agentic_AI_Architecture.png)
 
-Generate document embeddings, configure Vector Search indexes, and retrieve relevant document passages using the configured ranking approach.
+![High-level Databricks architecture](Enterprise%20Agentic%20AI%20Architecture%20on%20Databricks.png)
 
-### 6. Agent Tool Integration
+## Acknowledgement
 
-Connect the available retrieval mechanisms and structured data functions to the agent so that it can select appropriate tools for user queries.
-
-### 7. Model Registration and Deployment
-
-Register the agent and configure its deployment through Databricks Model Serving.
-
-### 8. Application and Observability
-
-Expose the solution through a conversational application and inspect agent execution using MLflow Tracing.
-
-## Example Use Cases
-
-The application is designed to explore queries that require different kinds of information retrieval:
-
-- Finding specific information from product documentation.
-- Retrieving relevant instructions from PDF manuals.
-- Looking up information available in structured datasets.
-- Answering questions that require combining document context with structured records.
-
-## Setup and Execution
-
-This project was developed using Databricks Free Edition.
-
-To explore the implementation:
-
-1. Clone this repository.
-2. Review the notebooks in their execution order.
-3. Import the notebooks into your Databricks workspace.
-4. Configure the required catalog, schema, volumes, compute resources, and model endpoints.
-5. Upload your own permitted source datasets.
-6. Execute the ingestion and processing workflows.
-7. Configure and synchronize the Vector Search index.
-8. Register the required agent tools and deploy the application.
-
-Exact resource names and configurations may need to be adjusted for your Databricks workspace.
-
-## Important Notes
-
-- The original PDF documents and complete source datasets are not included in this repository.
-- Databricks workspace resources and model endpoints must be configured separately.
-- Cloud resource availability and usage limits depend on the Databricks environment.
-- This is an independently maintained implementation based on concepts explored through a public tutorial. Refer to the acknowledgements for the original learning resource.
-
-## Acknowledgements
-
-This project was developed as a hands-on learning and implementation exercise inspired by the tutorial:
-
-**Agentic AI for Beginners: Build an E2E Agentic Solution in Databricks Free Edition**
-
-Original tutorial: https://youtu.be/F7CMlkxHE3o
-
-The repository documents my implementation and learning. Any additional modifications or enhancements are identified separately where applicable.
+This learning project was inspired by [Agentic AI for Beginners: Build an E2E Agentic Solution in Databricks Free Edition](https://youtu.be/F7CMlkxHE3o).
 
 ## Author
 
-**Subhajit Chowdhury**
-
+**Subhajit Chowdhury**  
 Data Engineer | AWS Certified | Snowflake
 
-- GitHub: https://github.com/Subhajit-Chowdhury
-- LinkedIn: https://www.linkedin.com/in/subhajit-dataengineer/
-
----
-
-If you find this project useful, feel free to explore the implementation and share your feedback.
+- [GitHub](https://github.com/Subhajit-Chowdhury)
+- [LinkedIn](https://www.linkedin.com/in/subhajit-dataengineer/)

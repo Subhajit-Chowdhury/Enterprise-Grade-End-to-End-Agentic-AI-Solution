@@ -9,7 +9,7 @@ DATABRICKS_TOKEN = dbutils.notebook.entry_point.getDbutils().notebook().getConte
 
 client = OpenAI(
     api_key=DATABRICKS_TOKEN,
-    base_url="https://150511393544475.ai-gateway.cloud.databricks.com/mlflow/v1"
+    base_url=os.environ["DATABRICKS_AI_GATEWAY_URL"]
 )
 
 response = client.chat.completions.create(
@@ -17,17 +17,13 @@ response = client.chat.completions.create(
     messages=[
         {
             "role": "user",
-            "content": "why are ai agents gettign popular. out put shall be brief"
+            "content": "Why are AI agents becoming popular? Answer briefly."
         }
     ],
-    max_tokens=5000
+    max_tokens=500
 )
 
 print(response.choices[0].message.content)
-
-# COMMAND ----------
-
-print(response.choices[0].message.content[1].get("text"))
 
 # COMMAND ----------
 
@@ -44,7 +40,7 @@ print(response.choices[0].message.content[1].get("text"))
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select ai_query('databricks-gpt-oss-120b','why are ai agents gettin =g popular')
+# MAGIC select ai_query('databricks-gpt-oss-120b','Why are AI agents becoming popular? Answer briefly.')
 
 # COMMAND ----------
 

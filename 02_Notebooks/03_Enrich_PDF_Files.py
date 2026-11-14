@@ -228,7 +228,7 @@ display(verify_df.limit(5))
 # MAGIC 1. Loaded products and product documentation from Unity Catalog
 # MAGIC 2. Joined the tables on `product_name`
 # MAGIC 3. Created indexed documents with XML-style formatting
-# MAGIC 4. Saved the results to `agentic_catalog.agentic_schema.products_indexed`
+# MAGIC 4. Saved the results to `agentic_catalog.agentic_schema.product_docs_combined`
 # MAGIC
 # MAGIC The indexed documents are now ready for:
 # MAGIC - Vector embeddings generation
