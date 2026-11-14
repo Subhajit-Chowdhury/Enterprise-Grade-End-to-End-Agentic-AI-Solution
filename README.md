@@ -15,12 +15,15 @@ The diagrams show the solution architecture, from source data and retrieval thro
 
 ## Databricks walkthrough
 
+| Combined product and document table | Hybrid Vector Search query | Playground policy tool |
+|---|---|---|
+| <img src="images/product-docs-combined-table.jpg" alt="Sample rows from the product_docs_combined Unity Catalog table" width="100%"> | <img src="images/vector-search-query-response.jpg" alt="Databricks hybrid Vector Search query and response" width="100%"> | <img src="images/playground-policy-function-call.jpg" alt="Databricks Playground calling the return-policy SQL function" width="100%"> |
+| Product metadata joined with extracted PDF text in Unity Catalog. | Query against the index requesting three results. | The Playground selects `get_return_policy` and displays the structured result. |
+
 <details>
 <summary>Unity Catalog tables and Vector Search index</summary>
 
 The combined table brings product attributes and extracted PDF text together. The index overview shows the Delta Sync index and its source table as displayed in the workspace.
-
-<p align="center"><img src="images/product-docs-combined-table.jpg" alt="Sample rows from the product_docs_combined Unity Catalog table" width="900"></p>
 
 <p align="center"><img src="images/vector-search-index-sample-data.jpg" alt="Sample data in the product_docs_index Vector Search index" width="900"></p>
 
@@ -35,8 +38,6 @@ The combined table brings product attributes and extracted PDF text together. Th
 
 The workspace query interface shows a hybrid query requesting three results, and the Python example shows the corresponding Vector Search client call.
 
-<p align="center"><img src="images/vector-search-query-response.jpg" alt="Databricks Vector Search hybrid query and response" width="900"></p>
-
 <p align="center"><img src="images/vector-search-python-query.jpg" alt="Python example querying the Vector Search index" width="900"></p>
 
 </details>
@@ -47,8 +48,6 @@ The workspace query interface shows a hybrid query requesting three results, and
 The Playground example shows the configured policy and service-history functions alongside the product-document search tool. For a policy question, the displayed tool call selects `get_return_policy` and returns a row from the policy table. The following generated answer is illustrative; details beyond the returned row should be checked against the source policy.
 
 <p align="center"><img src="images/playground-available-tools.jpg" alt="Databricks Playground with policy, service-history, and Vector Search tools" width="900"></p>
-
-<p align="center"><img src="images/playground-policy-function-call.jpg" alt="Playground calling the return-policy SQL function and displaying its table result" width="900"></p>
 
 <p align="center"><img src="images/playground-policy-response.jpg" alt="Illustrative Playground response following a return-policy lookup" width="900"></p>
 
