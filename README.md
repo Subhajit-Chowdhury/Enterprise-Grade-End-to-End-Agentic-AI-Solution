@@ -8,9 +8,10 @@ The architecture uses Databricks, PySpark, Delta Lake, Unity Catalog, and Vector
 
 The diagrams show the solution architecture, from source data and retrieval through the agent and delivery layers.
 
+![End-to-end agentic AI architecture](End-to-End_Agentic_AI_Architecture.png)
+
 ![High-level Databricks architecture](Enterprise%20Agentic%20AI%20Architecture%20on%20Databricks.png)
 
-![End-to-end agentic AI architecture](End-to-End_Agentic_AI_Architecture.png)
 
 ## Databricks walkthrough
 
@@ -93,10 +94,6 @@ The service-history example shows the model selecting `get_service_history` and 
 │   ├── vector-search-index-sample-data.jpg
 │   ├── vector-search-python-query.jpg
 │   └── vector-search-query-response.jpg
-├── .kilo/
-│   ├── .gitignore
-│   └── agents/
-│       └── data.md
 ├── LICENSE
 └── README.md
 ```
